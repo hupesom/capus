@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.trade.mapper.GoodsMapper">
+
+    <!--
+      商品列表（买家视角）：不按 create_user 过滤。
+      这是二手交易和"文章管理"最大的思维差别 —— 文章是自己写的所以只看自己的，
+      商品是别人卖给我的，买家必须能看到所有人的在售商品。
+
+      参数名统一用 status（对应 goods 表的 status 列）。
+      原来的 state 在表里不存在，MySQL 直接报 1054 Unknown column 'state'。
+    -->
+    <select id="get" resultType="com.example.trade.entity.Goods">
+        select * from goods
+        <where>
+            <if test="categoryId != null">
+                and category_id = #{categoryId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (title like concat('%', #{keyword}, '%')
+                     or description like concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <!--
+      编辑商品。
+
+      修三处（原来都在 @Update 注解里）：
+        1. "update_time=now() goods where" 多了一个 goods → MySQL 报 1064
+        2. catetory_id 拼错，列名是 category_id
+        3. set 里带 view_count，客户端不传就是 null，NOT NULL 列直接报错
+
+      另外不更新 seller_id / status / view_count：
+        卖家不能靠"编辑"把自己的商品改成"已售出"，也不能改浏览量。
+
+      where 带 create_user 条件 → 只能改自己发布的商品（防横向越权）。
+
+      注意字段写法：多参数方法里实体字段必须带参数名前缀（goods.title），
+      写 #{title} 会报 "Parameter 'title' not found"。
+    -->
+    <update id="update">
+        update goods
+        set title = #{goods.title},
+            description = #{goods.description},
+            price = #{goods.price},
+            original_price = #{goods.originalPrice},
+            cover_img = #{goods.coverImg},
+            category_id = #{goods.categoryId},
+            update_time = now()
+        where id = #{goods.id}
+          and create_user = #{userId}
+    </update>
+
+</mapper>

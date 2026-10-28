@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.trade.mapper.UserMapper">
+
+    <!--
+      修改资料。
+      只改 nickname 和 email —— username 是登录名不能随便改，
+      password 也不能从这里改（改密码要走 updatePwd，那里有原密码校验 + 强制下线）。
+      where 用 id（来自 ThreadLocal，不是客户端传的），防越权。
+    -->
+    <update id="update">
+        update user
+        set nickname = #{user.nickname},
+            email = #{user.email},
+            update_time = now()
+        where id = #{id}
+    </update>
+
+</mapper>

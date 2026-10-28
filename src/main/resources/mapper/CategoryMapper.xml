@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.trade.mapper.CategoryMapper">
+
+    <!--
+      修改类目。
+      修：表名 catetory 拼错 → MySQL 报 1146 Table doesn't exist
+      修：加 create_user 条件，防止改别人的类目（横向越权）
+
+      注意字段写法：多参数方法里实体字段必须带参数名前缀（category.categoryName）。
+    -->
+    <update id="update">
+        update category
+        set category_name = #{category.categoryName},
+            category_alias = #{category.categoryAlias},
+            update_time = now()
+        where id = #{category.id}
+          and create_user = #{createUser}
+    </update>
+
+</mapper>

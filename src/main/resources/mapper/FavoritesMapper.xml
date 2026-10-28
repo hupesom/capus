@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.trade.mapper.FavoritesMapper">
+
+    <!--
+      我的收藏：连表查商品信息。
+      只查 favorites 表的话前端只能拿到 goodsId，显示不了任何内容。
+      用别名区分同名字段（f.id 和 g.title 等），配合 FavoriteItem 承接。
+    -->
+    <select id="list" resultType="com.example.trade.entity.FavoriteItem">
+        select f.id          as id,
+               f.goods_id    as goodsId,
+               g.title       as title,
+               g.description as description,
+               g.price       as price,
+               g.cover_img   as coverImg,
+               g.status      as goodsStatus,
+               f.create_time as createTime
+        from favorites f
+        join goods g on f.goods_id = g.id
+        where f.user_id = #{userId}
+        order by f.create_time desc
+    </select>
+
+</mapper>

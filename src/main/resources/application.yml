@@ -1,0 +1,67 @@
+server:
+  # 显式指定端口。不写的话会用默认 8080，
+  # 但如果环境里有 SERVER_PORT / SERVER__PORT 变量会被覆盖（Spring Boot 4 的双下划线绑定）
+  port: 8080
+
+spring:
+  data:
+    redis:
+      # 修：原来指向 192.168.122.141（CentOS 虚拟机），实测该主机 6379 端口不可达，
+      # 登录接口会一直卡在连接超时。改连本机 Redis（127.0.0.1:6379）。
+      host: 127.0.0.1
+      port: 6379
+      # 本机 Redis 未设置 requirepass（实测 AUTH 返回 "no password is set"），
+      # 所以这里必须留空。留了密码反而会认证失败。
+      password:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 密码走环境变量，冒号后是默认值，本地开发不改环境变量也能跑。
+    # 上传到 GitHub 时不会把真实密码写进仓库。
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:000000}
+    url: jdbc:mysql://localhost:3306/trade
+
+mybatis:
+  # 1. Mapper XML 映射文件位置
+  mapper-locations: classpath:mapper/*.xml
+
+  # 2. 实体类所在包（XML 里可用简写类名）
+  # 修：原来是 org.example.trade.entity，但实际包名是 com.example.trade.entity
+  type-aliases-package: com.example.trade.entity
+
+  # 3. 下划线列名 -> 驼峰属性名：category_name -> categoryName
+  configuration:
+    map-underscore-to-camel-case: true
+
+aliyun:
+  oss:
+    # 注意：这个 key 叫 endpoint（代码里也是读 endpoint），
+    # 之前代码读的是 enpoint（少个 d），会导致启动时占位符解析失败。
+    endpoint: https://oss-cn-beijing.aliyuncs.com
+    bucketName: testossmf
+    region: cn-beijing
+    accessKeyId: ${ALIYUN_OSS_ID:}
+    accessKeySecret: ${ALIYUN_OSS_SECRET:}
+
+# AI 商品识别（阿里云百炼多模态模型）
+ai:
+  dashscope:
+    # 去 https://bailian.console.aliyun.com/?apiKey=1&tab=api#/api 申请
+    # 留空的话 AI 接口会返回"请手动填写商品信息"，不影响其他功能
+    api-key: ${DASHSCOPE_API_KEY:}
+    # ⚠️ 模型名必须是 qwen3-vl-plus，不是 qwen-vl-plus。
+    # 实测：百炼返回 "Model not exist" —— 因为工作空间专用 Key（sk-ws- 开头）
+    # 只能调工作空间里部署过的模型名，qwen-vl-plus 这个名字已不可用。
+    # 换 Key 或换工作空间时，先用这个命令查可用模型：
+    #   curl https://dashscope.aliyuncs.com/api/v1/models -H "Authorization: Bearer $KEY"
+    model: qwen3-vl-plus
+
+
+
+
+
+
+
+
+
+

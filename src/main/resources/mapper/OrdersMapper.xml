@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.trade.mapper.OrdersMapper">
+
+    <!--
+      我的订单：role='buy' 看我买的，role='sell' 看我卖的。
+      修：原来写的是 role=='seller'，但接口约定用 sell，条件永远不成立。
+      修：原来两个 if 都不成立时 <where> 是空的 → 返回全部订单（越权泄露）。
+      现在用 choose 保证必中一条分支。
+    -->
+    <select id="mine" resultType="com.example.trade.entity.Orders">
+        select * from orders
+        <choose>
+            <when test="role == 'buy'">
+                where buyer_id = #{id}
+            </when>
+            <otherwise>
+                where seller_id = #{id}
+            </otherwise>
+        </choose>
+        order by create_time desc
+    </select>
+
+</mapper>
